@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace SimpleBrowser.Elements
@@ -20,28 +21,28 @@ namespace SimpleBrowser.Elements
 			{
 				if (String.IsNullOrEmpty(this.Name))
 				{
-					yield return new UserVariableEntry() { Name = "x", Value = this.x.ToString() };
-					yield return new UserVariableEntry() { Name = "y", Value = this.y.ToString() };
+					yield return new UserVariableEntry { Name = "x", Value = this.x.ToString() };
+					yield return new UserVariableEntry { Name = "y", Value = this.y.ToString() };
 				}
 				else
 				{
-					yield return new UserVariableEntry() { Name = string.Format("{0}.x", this.Name), Value = this.x.ToString() };
-					yield return new UserVariableEntry() { Name = string.Format("{0}.y", this.Name), Value = this.y.ToString() };
+					yield return new UserVariableEntry { Name = string.Format("{0}.x", this.Name), Value = this.x.ToString() };
+					yield return new UserVariableEntry { Name = string.Format("{0}.y", this.Name), Value = this.y.ToString() };
 					if (!string.IsNullOrEmpty(this.Value))
 					{
-						yield return new UserVariableEntry() { Name = this.Name, Value = this.Value };
+						yield return new UserVariableEntry { Name = this.Name, Value = this.Value };
 					}
 				}
 			}
 			yield break;
 		}
 
-		public override ClickResult Click(uint x, uint y)
+		public async override Task<ClickResult> Click(uint x, uint y)
 		{
 			this.x = x;
 			this.y = y;
 
-			if (this.SubmitForm(clickedElement: this))
+			if (await this.SubmitForm(clickedElement: this))
 			{
 				return ClickResult.SucceededNavigationComplete;
 			}

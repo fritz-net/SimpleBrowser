@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Text.RegularExpressions;
 
@@ -31,7 +32,8 @@ namespace SimpleBrowser.Elements
 		}
 
 		static Regex _postbackRecognizer = new Regex(@"javascript\:__doPostBack\('([^\']*)\'", RegexOptions.Compiled);
-		public override ClickResult Click()
+
+		public override async Task<ClickResult> Click()
 		{
 			base.Click();
 
@@ -66,7 +68,7 @@ namespace SimpleBrowser.Elements
 
 				eventTarget.Value = name;
 
-				if (this.SubmitForm())
+				if (await this.SubmitForm())
 				{
 					return ClickResult.SucceededNavigationComplete;
 				}
@@ -92,7 +94,7 @@ namespace SimpleBrowser.Elements
 					queryStringValues = querystring[1];
 			}
 
-			if (RequestNavigation(new NavigationArgs()
+			if (await RequestNavigation(new NavigationArgs
 			{
 				Uri = url,
 				Target = target,
@@ -106,6 +108,5 @@ namespace SimpleBrowser.Elements
 				return ClickResult.SucceededNavigationError;
 			}
 		}
-
 	}
 }

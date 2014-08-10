@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using System.IO;
+using System.Threading.Tasks;
 using SimpleBrowser.Network;
 using Moq;
 using System.Net;
@@ -49,7 +50,7 @@ namespace SimpleBrowser.UnitTests
 
 						byte[] responseContent = Encoding.UTF8.GetBytes(this.ResponseContent);
 						mockResponse.Setup(r => r.GetResponseStream()).Returns(new MemoryStream(responseContent));
-						return mockResponse.Object;
+						return Task.FromResult(mockResponse.Object);
 					});
 				mock.SetupProperty(m => m.Headers, new WebHeaderCollection());
 				mock.Setup(m => m.GetRequestStream()).Returns(new MemoryStream(new byte[2000000]));
@@ -95,7 +96,7 @@ namespace SimpleBrowser.UnitTests
 							}
 						}
 						mockResponse.Setup(r => r.GetResponseStream()).Returns(new MemoryStream(responseContent));
-						return mockResponse.Object;
+						return Task.FromResult(mockResponse.Object);
 					});
 				mock.SetupProperty(m => m.Headers, new WebHeaderCollection());
 				mock.Setup(m => m.GetRequestStream()).Returns(new MemoryStream(new byte[20000]));
@@ -135,7 +136,7 @@ namespace SimpleBrowser.UnitTests
 							}
 						}
 						mockResponse.Setup(r => r.GetResponseStream()).Returns(new MemoryStream(responseContent));
-						return mockResponse.Object;
+						return Task.FromResult(mockResponse.Object);
 					});
 				mock.SetupProperty(m => m.Headers, new WebHeaderCollection());
 				mock.Setup(m => m.GetRequestStream()).Returns(new MemoryStream(new byte[20000]));

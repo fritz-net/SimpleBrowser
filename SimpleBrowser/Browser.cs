@@ -8,6 +8,7 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Web;
 using System.Xml.Linq;
 using SimpleBrowser.Network;
@@ -372,35 +373,35 @@ namespace SimpleBrowser
 			}
 		}
 
-		public bool Navigate(string url)
+		public async Task<bool> Navigate(string url)
 		{
-			return Navigate(new Uri(url));
+			return await Navigate(new Uri(url));
 		}
 
-		public bool Navigate(string url, int timeoutMilliseconds)
+		public async Task<bool> Navigate(string url, int timeoutMilliseconds)
 		{
-			return Navigate(new Uri(url), timeoutMilliseconds);
+			return await Navigate(new Uri(url), timeoutMilliseconds);
 		}
 
-		public bool Navigate(Uri url)
+		public async Task<bool> Navigate(Uri url)
 		{
-			return DoRequest(url, "GET", null, null, null, null, _timeoutMilliseconds);
+			return await DoRequest(url, "GET", null, null, null, null, _timeoutMilliseconds);
 		}
 
-		public bool Navigate(Uri url, string postData, string contentType)
+		public async Task<bool> Navigate(Uri url, string postData, string contentType)
 		{
-			return DoRequest(url, "POST", null, postData, contentType, null, _timeoutMilliseconds);
+			return await DoRequest(url, "POST", null, postData, contentType, null, _timeoutMilliseconds);
 		}
 
-		public bool Navigate(Uri url, NameValueCollection postData, string contentType = null, string encodingType = null)
+		public async Task<bool> Navigate(Uri url, NameValueCollection postData, string contentType = null, string encodingType = null)
 		{
-			return DoRequest(url, "POST", postData, null, contentType, encodingType, _timeoutMilliseconds);
+			return await DoRequest(url, "POST", postData, null, contentType, encodingType, _timeoutMilliseconds);
 		}
 
-		public bool Navigate(Uri url, int timeoutMilliseconds)
+		public async Task<bool> Navigate(Uri url, int timeoutMilliseconds)
 		{
 			_timeoutMilliseconds = timeoutMilliseconds;
-			return Navigate(url);
+			return await Navigate(url);
 		}
 
 		public bool NavigateBack()
@@ -571,7 +572,7 @@ namespace SimpleBrowser
 			throw new InvalidOperationException("The element was not of the corresponding type");
 		}
 
-		internal bool DoRequest(Uri uri, string method, NameValueCollection userVariables, string postData, string contentType, string encodingType, int timeoutMilliseconds)
+		internal async Task<bool> DoRequest(Uri uri, string method, NameValueCollection userVariables, string postData, string contentType, string encodingType, int timeoutMilliseconds)
 		{
 			/* IMPORTANT INFORMATION:
 			 * HttpWebRequest has a bug where if a 302 redirect is encountered (such as from a Response.Redirect), any cookies
@@ -675,6 +676,7 @@ namespace SimpleBrowser
 						postBody = StringUtil.MakeQueryString(userVariables);
 						byte[] data = Encoding.GetEncoding(28591).GetBytes(postBody);
 						req.ContentLength = data.Length;
+						
 						using (Stream stream = req.GetRequestStream())
 						{
 							stream.Write(data, 0, data.Length);
@@ -715,7 +717,7 @@ namespace SimpleBrowser
 				};
 				try
 				{
-					using (IHttpWebResponse response = req.GetResponse())
+					using (IHttpWebResponse response = await req.GetResponse())
 					{
 						Encoding responseEncoding = Encoding.UTF8; //default
 						string charSet = response.CharacterSet;
@@ -799,7 +801,7 @@ namespace SimpleBrowser
 				}
 			} while (handle301Or302Redirect);
 			this.RemoveChildBrowsers(); //Any frames contained in the previous state should be removed. They will be recreated if we ever navigate back
-			this.AddNavigationState(new NavigationState() { Html = html, Url = uri, ContentType = contentType });
+			this.AddNavigationState(new NavigationState { Html = html, Url = uri, ContentType = contentType });
 			return true;
 		}
 
@@ -1032,7 +1034,7 @@ namespace SimpleBrowser
 			return new HtmlResult(CreateHtmlElement(e), this);
 		}
 
-		private bool htmlElement_NavigationRequested(HtmlElement.NavigationArgs args)
+		private async Task<bool> htmlElement_NavigationRequested(HtmlElement.NavigationArgs args)
 		{
 			Uri fullUri = new Uri(this.Url, args.Uri);
 			if (args.TimeoutMilliseconds == 0)
@@ -1058,7 +1060,7 @@ namespace SimpleBrowser
 				}
 			}
 
-			return browserToNav.DoRequest(fullUri, args.Method, args.UserVariables, args.PostData, args.ContentType, args.EncodingType, args.TimeoutMilliseconds);
+			return await browserToNav.DoRequest(fullUri, args.Method, args.UserVariables, args.PostData, args.ContentType, args.EncodingType, args.TimeoutMilliseconds);
 		}
 
 		private void InvalidateAllActiveElements()

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace SimpleBrowser.Network
 {
@@ -21,9 +22,10 @@ namespace SimpleBrowser.Network
 			return _wr.GetRequestStream();
 		}
 
-		public IHttpWebResponse GetResponse()
+		public async Task<IHttpWebResponse> GetResponse()
 		{
-			return new WebResponseWrapper((HttpWebResponse)_wr.GetResponse());
+			var response = await _wr.GetResponseAsync();
+			return new WebResponseWrapper((HttpWebResponse)response);
 		}
 
 		public DecompressionMethods AutomaticDecompression

@@ -56,7 +56,7 @@ namespace SimpleBrowser.Elements
 		{
 			if (!String.IsNullOrEmpty(this.Name))
 			{
-				yield return new UserVariableEntry() { Name = this.Name, Value = this.Value };
+				yield return new UserVariableEntry { Name = this.Name, Value = this.Value };
 			}
 			yield break;
 		}

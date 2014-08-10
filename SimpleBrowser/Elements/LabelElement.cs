@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace SimpleBrowser.Elements
@@ -12,11 +13,11 @@ namespace SimpleBrowser.Elements
 			: base(element)
 		{
 		}
-		public override ClickResult Click()
+		public async override Task<ClickResult> Click()
 		{
-			base.Click();
+			await base.Click();
 			if(this.For != null)
-				return this.For.Click();
+				return await this.For.Click();
 			return ClickResult.SucceededNoOp;
 		}
 		HtmlElement _for = null;

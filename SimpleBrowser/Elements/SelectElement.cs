@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace SimpleBrowser.Elements
@@ -102,7 +103,7 @@ namespace SimpleBrowser.Elements
 				{
 					if (item.Selected)
 					{
-						yield return new UserVariableEntry() { Name = this.Name, Value = item.OptionValue };
+						yield return new UserVariableEntry { Name = this.Name, Value = item.OptionValue };
 					}
 				}
 			}
@@ -164,9 +165,9 @@ namespace SimpleBrowser.Elements
 				this.Owner.MakeSelected(this, value);
 			}
 		}
-		public override ClickResult Click()
+		public async override Task<ClickResult> Click()
 		{
-			base.Click();
+			await base.Click();
 			this.Selected = !this.Selected;
 			return ClickResult.SucceededNoNavigation;
 		}

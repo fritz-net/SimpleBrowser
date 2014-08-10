@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Web;
 using System.Xml.Linq;
 using SimpleBrowser.Query;
@@ -189,12 +190,12 @@ namespace SimpleBrowser
 		/// NOTE: If the element IS an INPUT TYPE=IMAGE element, this method will "click" the image input as though the
 		/// element had focus and the space bar or enter key was pressed to activate the element, performing the click.
 		/// </summary>
-		public ClickResult Click()
+		public async Task<ClickResult> Click()
 		{
 			AssertElementExists();
 			AssertElementIsNotDisabled();
 			_browser.Log("Clicking element: " + HttpUtility.HtmlEncode(XElement.ToString()), LogMessageType.Internal);
-			return _current.Click();
+			return await _current.Click();
 		}
 
 		/// <summary>
@@ -204,12 +205,12 @@ namespace SimpleBrowser
 		/// If the element does not support being clicked at specified coordinates (i.e., the element IS NOT an INPUT
 		/// TYPE=IMAGE element), the element will be clicked as though the Click() method (without parameters) been called.
 		/// </summary>
-		public ClickResult Click(uint x, uint y)
+		public async Task<ClickResult> Click(uint x, uint y)
 		{
 			AssertElementExists();
 			AssertElementIsNotDisabled();
 			_browser.Log("Clicking element: " + HttpUtility.HtmlEncode(XElement.ToString()), LogMessageType.Internal);
-			return _current.Click(x, y);
+			return await _current.Click(x, y);
 		}
 
 		/// <summary>
@@ -219,23 +220,23 @@ namespace SimpleBrowser
 		/// well.
 		/// </summary>
 		/// <param name="url">Optional. If specified, the form will be submitted to this URL instead.</param>
-		public bool SubmitForm(string url = null)
+		public async Task<bool> SubmitForm(string url = null)
 		{
 			AssertElementExists();
 			AssertElementIsNotDisabled();
 			_browser.Log("Submitting parent/ancestor form of: " + HttpUtility.HtmlEncode(XElement.ToString()), LogMessageType.Internal);
-			return _current.SubmitForm(url);
+			return await _current.SubmitForm(url);
 		}
 
 		/// <summary>
 		/// This method is designed for use on Asp.Net WebForms sites where the anchor link being clicked only has a postback
 		/// javascript function as its method of navigating to the next page.
 		/// </summary>
-		public ClickResult DoAspNetLinkPostBack()
+		public async Task<ClickResult> DoAspNetLinkPostBack()
 		{
 			AssertElementExists();
 			_browser.Log("Performing ASP.Net postback click for : " + HttpUtility.HtmlEncode(XElement.ToString()), LogMessageType.Internal);
-			return _current.DoAspNetLinkPostBack();
+			return await _current.DoAspNetLinkPostBack();
 		}
 
 		/// <summary>

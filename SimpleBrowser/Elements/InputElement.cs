@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace SimpleBrowser.Elements
@@ -27,17 +28,13 @@ namespace SimpleBrowser.Elements
 			{
 				// Verifies that the input element type allowed to have a maxlength attribute
 				string inputType = Element.GetAttributeCI("type");
-				bool maxLengthAble = false;
-				if (inputType == null || // According to the HTML5 specification, if the type attribute does not exist, by default, the input element is a text input.
-					inputType.ToLower() == "text" ||
-					inputType.ToLower() == "password" ||
-					inputType.ToLower() == "search" ||
-					inputType.ToLower() == "tel" ||
-					inputType.ToLower() == "url" ||
-					inputType.ToLower() == "email")
-				{
-					maxLengthAble = true;
-				}
+				bool maxLengthAble = inputType == null || // According to the HTML5 specification, if the type attribute does not exist, by default, the input element is a text input.
+				                     inputType.ToLower() == "text" ||
+				                     inputType.ToLower() == "password" ||
+				                     inputType.ToLower() == "search" ||
+				                     inputType.ToLower() == "tel" ||
+				                     inputType.ToLower() == "url" ||
+				                     inputType.ToLower() == "email";
 
 				int maxLength = int.MaxValue;
 				// If the input element type allowed to have a maxlength attribute, if the element
@@ -81,7 +78,7 @@ namespace SimpleBrowser.Elements
 		{
 			if (!String.IsNullOrEmpty(this.Name))
 			{
-				yield return new UserVariableEntry() { Name = this.Name, Value = this.Value };
+				yield return new UserVariableEntry { Name = this.Name, Value = this.Value };
 			}
 			yield break;
 		}
@@ -97,7 +94,7 @@ namespace SimpleBrowser.Elements
 		{
 			if (this.Selected && !String.IsNullOrEmpty(this.Name))
 			{
-				yield return new UserVariableEntry() { Name = this.Name, Value = this.Value };
+				yield return new UserVariableEntry { Name = this.Name, Value = this.Value };
 			}
 			yield break;
 		}
@@ -108,9 +105,9 @@ namespace SimpleBrowser.Elements
 			: base(element)
 		{
 		}
-		public override ClickResult Click()
+		public async override Task<ClickResult> Click()
 		{
-			base.Click();
+			await base.Click();
 			if (!this.Selected)
 			{
 				this.Selected = true;
@@ -153,9 +150,9 @@ namespace SimpleBrowser.Elements
 			: base(element)
 		{
 		}
-		public override ClickResult Click()
+		public async override Task<ClickResult> Click()
 		{
-			base.Click();
+			await base.Click();
 			this.Selected = !this.Selected;
 			return ClickResult.SucceededNoNavigation;
 		}
@@ -178,7 +175,7 @@ namespace SimpleBrowser.Elements
 		{
 			if (this.XElement.HasAttributeCI("checked") && !String.IsNullOrEmpty(this.Name))
 			{
-				yield return new UserVariableEntry() { Name = this.Name, Value = string.IsNullOrEmpty(this.Value) ? "on" : this.Value };
+				yield return new UserVariableEntry { Name = this.Name, Value = string.IsNullOrEmpty(this.Value) ? "on" : this.Value };
 			}
 			yield break;
 		}

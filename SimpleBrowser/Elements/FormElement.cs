@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.IO;
 
@@ -45,13 +46,12 @@ namespace SimpleBrowser.Elements
 			}
 		}
 
-		public override bool SubmitForm(string url = null, HtmlElement clickedElement = null)
+		public override async Task<bool> SubmitForm(string url = null, HtmlElement clickedElement = null)
 		{
-			//return base.SubmitForm(url, clickedElement);
-			return Submit(url, clickedElement);
+			return await SubmitAsync(url, clickedElement);
 		}
 
-		private bool Submit(string url = null, HtmlElement clickedElement = null)
+		private async Task<bool> SubmitAsync(string url = null, HtmlElement clickedElement = null)
 		{
 			NavigationArgs navigation = new NavigationArgs();
 			navigation.Uri = url ?? this.Action;
@@ -104,7 +104,7 @@ namespace SimpleBrowser.Elements
 				navigation.ContentType = FormEncoding.MultipartForm + "; boundary=" + token;
 
 			}
-			return RequestNavigation(navigation);
+			return await RequestNavigation(navigation);
 		}
 		public string EncType
 		{

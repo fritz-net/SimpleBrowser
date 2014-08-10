@@ -13,7 +13,7 @@ namespace SimpleBrowser.UnitTests.OfflineTests
 		public void JavascriptUrl()
 		{
 			Browser b = new Browser(); // does not need network to fail
-			var res = b.Navigate("javascript:'';");
+			var res = b.Navigate("javascript:'';").Result;
 			Assert.False(res);
 		}
 	}

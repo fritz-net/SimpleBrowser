@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace SimpleBrowser.Elements
@@ -20,9 +21,9 @@ namespace SimpleBrowser.Elements
 			}
 			return new UserVariableEntry[0];
 		}
-		public override ClickResult Click()
+		public async override Task<ClickResult> Click()
 		{
-			if (this.SubmitForm(clickedElement: this))
+			if (await this.SubmitForm(clickedElement: this))
 			{
 				return ClickResult.SucceededNavigationComplete;
 			}

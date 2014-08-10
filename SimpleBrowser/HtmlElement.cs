@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using SimpleBrowser.Elements;
 using System.Collections.Specialized;
@@ -100,16 +101,16 @@ namespace SimpleBrowser
 		}
 
 
-		public event Func<NavigationArgs, bool> NavigationRequested;
+		public event Func<NavigationArgs, Task<bool>> NavigationRequested;
 
-		public virtual ClickResult Click()
+		public virtual async Task<ClickResult> Click()
 		{
 			return ClickResult.SucceededNoOp;
 		}
 
-		public virtual ClickResult Click(uint x, uint y)
+		public virtual async Task<ClickResult> Click(uint x, uint y)
 		{
-			return Click();
+			return await Click();
 		}
 
 		internal static HtmlElement CreateFor(XElement element)
@@ -183,30 +184,31 @@ namespace SimpleBrowser
 			return result;
 		}
 
-		protected virtual bool RequestNavigation(NavigationArgs args)
+		protected virtual async Task<bool> RequestNavigation(NavigationArgs args)
 		{
-			if (NavigationRequested != null)
-				return NavigationRequested(args);
+			var handler = NavigationRequested;
+			if (handler != null)
+				return await handler(args);
 			else
 				return false;
 		}
 
-		public virtual bool SubmitForm(string url = null, HtmlElement clickedElement = null)
+		public virtual async Task<bool> SubmitForm(string url = null, HtmlElement clickedElement = null)
 		{
 			XElement formElem = this.Element.GetAncestorCI("form");
 			if (formElem != null)
 			{
 				FormElement form = this.OwningBrowser.CreateHtmlElement<FormElement>(formElem);
-				return form.SubmitForm(url, clickedElement);
+				return await form.SubmitForm(url, clickedElement);
 			}
 			return false;
 		}
 
-		public ClickResult DoAspNetLinkPostBack()
+		public async Task<ClickResult> DoAspNetLinkPostBack()
 		{
 			if (this is AnchorElement)
 			{
-				return this.Click();
+				return await this.Click();
 			}
 			throw new InvalidOperationException("This method must only be called on <a> elements having a __doPostBack javascript call in the href attribute");
 		}
