@@ -81,6 +81,35 @@ namespace SimpleBrowser
 		public KeyStateOption KeyState{get;set;}
 
 		/// <summary>
+		/// The time elapsed between the initiation of the most recent request and the receipt of the first byte of response data
+		/// </summary>
+		public TimeSpan TimeToFirstByte { get; private set; }
+		/// <summary>
+		/// The amount of time to load the response content for the most recent request (does not include headers)
+		/// </summary>
+		public TimeSpan TimeToLoadResponse { get; private set; }
+
+		/// <summary>
+		/// The total number of uncompressed bytes in the response returned for the most recent navigation
+		/// </summary>
+		public long ResponseSizeBytes { get; private set; }
+		
+		/// <summary>
+		/// The total number of bytes in the response returned for the most recent navigation, before decompression (this is the gzipped response length)
+		/// </summary>
+		public long ResponseEncodedSizeBytes { get; private set; }
+
+		/// <summary>
+		/// Indicates whether the response returned for the most recent navigation was gzip-encoded
+		/// </summary>
+		public bool IsResponseGzipEncoded { get; private set; }
+
+		/// <summary>
+		/// A copy of the X-Robots-Tag header (if any) received in the last response
+		/// </summary>
+		public string RobotsHeader { get; private set; }
+
+		/// <summary>
 		/// This collection allows you to specify additional key/value pairs that will be sent in the next request. Some
 		/// websites use JavaScript or other dynamic methods to dictate what is submitted to the next page and these
 		/// cannot be determined automatically from the originating HTML. In those cases, investigate the process using
@@ -102,7 +131,7 @@ namespace SimpleBrowser
 			}
 		}
 
-		public WebException LastWebException { get; private set; }
+		public NavigationError LastError { get; private set; }
 
 		/// <summary>
 		/// Returns a dictionary reflecting the current navigation history. The keys are integers reflecting the position in the history,
@@ -206,7 +235,7 @@ namespace SimpleBrowser
 
 		public void ClearException()
 		{
-			LastWebException = null;
+			LastError = null;
 		}
 
 		public static void ClearWindows()
@@ -248,7 +277,11 @@ namespace SimpleBrowser
 				_proxy = _proxy,
 				_timeoutMilliseconds = _timeoutMilliseconds,
 				Accept = Accept,
-				LastWebException = LastWebException,
+				LastError = new NavigationError
+				{
+					ErrorType = LastError.ErrorType,
+					WebException = LastError.WebException
+				},
 				RetainLogs = RetainLogs,
 				UserAgent = UserAgent
 			};
@@ -610,6 +643,7 @@ namespace SimpleBrowser
 				if (maxRedirects-- == 0)
 				{
 					Log("Too many 302 redirects", LogMessageType.Error);
+					LastError = new NavigationError(NavigationErrorType.TooManyRedirects);
 					return false;
 				}
 
@@ -623,6 +657,7 @@ namespace SimpleBrowser
 				catch (NotSupportedException)
 				{
 					// Happens when the URL cannot be parsed (example: 'javascript:')
+					LastError = new NavigationError(NavigationErrorType.UnparsableUrl);
 					return false;
 				}
 
@@ -669,6 +704,14 @@ namespace SimpleBrowser
 						userVariables.Add(_includeFormValues);
 				}
 
+				TimeToFirstByte = TimeSpan.Zero;
+				TimeToLoadResponse = TimeSpan.Zero;
+				ResponseSizeBytes = 0;
+				ResponseEncodedSizeBytes = 0;
+				IsResponseGzipEncoded = false;
+				RobotsHeader = null;
+				var firstByteTimer = Stopwatch.StartNew();
+
 				if (userVariables != null)
 				{
 					if (method == "POST")
@@ -677,7 +720,7 @@ namespace SimpleBrowser
 						byte[] data = Encoding.GetEncoding(28591).GetBytes(postBody);
 						req.ContentLength = data.Length;
 						
-						using (Stream stream = req.GetRequestStream())
+						using (Stream stream = await req.GetRequestStream())
 						{
 							stream.Write(data, 0, data.Length);
 						}
@@ -698,7 +741,7 @@ namespace SimpleBrowser
 					postBody = postData;
 					byte[] data = Encoding.GetEncoding(28591).GetBytes(postData);
 					req.ContentLength = data.Length;
-					using (Stream stream = req.GetRequestStream())
+					using (Stream stream = await req.GetRequestStream())
 					{
 						stream.Write(data, 0, data.Length);
 					}
@@ -719,6 +762,11 @@ namespace SimpleBrowser
 				{
 					using (IHttpWebResponse response = await req.GetResponse())
 					{
+						TimeToFirstByte = firstByteTimer.Elapsed;
+						var responseLoadTimer = Stopwatch.StartNew();
+						ResponseEncodedSizeBytes = response.OriginalContentLength;
+						RobotsHeader = response.Headers["X-Robots-Tag"];
+
 						Encoding responseEncoding = Encoding.UTF8; //default
 						string charSet = response.CharacterSet;
 						if (!String.IsNullOrEmpty(charSet))
@@ -734,8 +782,15 @@ namespace SimpleBrowser
 						}
 						//ensure the stream is disposed
 						using (Stream rs = response.GetResponseStream())
+						using (MemoryStream ms = new MemoryStream())
 						{
-							using (StreamReader reader = new StreamReader(rs, responseEncoding))
+							await rs.CopyToAsync(ms);
+							TimeToLoadResponse = responseLoadTimer.Elapsed;
+							IsResponseGzipEncoded = rs is System.IO.Compression.GZipStream;
+
+							ResponseSizeBytes = ms.Length; // the length in bytes differs depending on encoding, hence we don't just measure the response string length
+							ms.Seek(0, SeekOrigin.Begin);
+							using (StreamReader reader = new StreamReader(ms, responseEncoding))
 							{
 								html = reader.ReadToEnd();
 							}
@@ -777,7 +832,7 @@ namespace SimpleBrowser
 						_lastRequestLog.Text = html;
 					}
 
-					LastWebException = ex;
+					LastError = new NavigationError(ex);
 
 					switch (ex.Status)
 					{

@@ -6,7 +6,7 @@ namespace SimpleBrowser.Network
 {
 	public interface IHttpWebRequest
 	{
-		Stream GetRequestStream();
+		Task<Stream> GetRequestStream();
 
 		Task<IHttpWebResponse> GetResponse();
 

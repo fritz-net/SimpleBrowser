@@ -14,6 +14,7 @@ namespace SimpleBrowser.Network
 		string CharacterSet { get; set; }
 
 		string ContentType { get; set; }
+		long OriginalContentLength { get; }
 
 		WebHeaderCollection Headers { get; set; }
 

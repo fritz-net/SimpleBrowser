@@ -33,7 +33,7 @@ namespace SimpleBrowser.UnitTests
 			box.Value = "***";
 			link = b.Select("input[type=submit]");
 			link.Click();
-			Assert.That(b.LastWebException == null, "Webexception detected");
+			Assert.That(b.LastError == null, "Webexception detected");
 			Assert.That(lastRequest.PostBody.Contains("&Price=51&"));
 
 		}

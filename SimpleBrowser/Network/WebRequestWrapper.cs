@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -17,13 +15,14 @@ namespace SimpleBrowser.Network
 
 		#region IHttpWebRequest Members
 
-		public System.IO.Stream GetRequestStream()
+		public async Task<Stream> GetRequestStream()
 		{
-			return _wr.GetRequestStream();
+			return await _wr.GetRequestStreamAsync();
 		}
 
 		public async Task<IHttpWebResponse> GetResponse()
 		{
+			((HttpWebResponse)_wr.GetResponse()).GetResponseStream();
 			var response = await _wr.GetResponseAsync();
 			return new WebResponseWrapper((HttpWebResponse)response);
 		}

@@ -46,6 +46,16 @@ namespace SimpleBrowser.Network
 			}
 		}
 
+		public long OriginalContentLength
+		{
+			get
+			{
+				var strlen = _wr.Headers[HttpResponseHeader.ContentLength] ?? "";
+				long len;
+				return long.TryParse(strlen, out len) ? len : -1;
+			}
+		}
+
 		public System.Net.WebHeaderCollection Headers
 		{
 			get

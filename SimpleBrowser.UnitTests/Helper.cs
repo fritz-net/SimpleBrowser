@@ -53,7 +53,7 @@ namespace SimpleBrowser.UnitTests
 						return Task.FromResult(mockResponse.Object);
 					});
 				mock.SetupProperty(m => m.Headers, new WebHeaderCollection());
-				mock.Setup(m => m.GetRequestStream()).Returns(new MemoryStream(new byte[2000000]));
+				mock.Setup(m => m.GetRequestStream()).Returns(() => Task.FromResult((Stream)new MemoryStream(new byte[2000000])));
 				return mock.Object;
 			}
 
@@ -99,7 +99,7 @@ namespace SimpleBrowser.UnitTests
 						return Task.FromResult(mockResponse.Object);
 					});
 				mock.SetupProperty(m => m.Headers, new WebHeaderCollection());
-				mock.Setup(m => m.GetRequestStream()).Returns(new MemoryStream(new byte[20000]));
+				mock.Setup(m => m.GetRequestStream()).Returns(() => Task.FromResult((Stream)new MemoryStream(new byte[20000])));
 				return mock.Object;
 			}
 
@@ -139,7 +139,7 @@ namespace SimpleBrowser.UnitTests
 						return Task.FromResult(mockResponse.Object);
 					});
 				mock.SetupProperty(m => m.Headers, new WebHeaderCollection());
-				mock.Setup(m => m.GetRequestStream()).Returns(new MemoryStream(new byte[20000]));
+				mock.Setup(m => m.GetRequestStream()).Returns(() => Task.FromResult((Stream)new MemoryStream(new byte[20000])));
 				return mock.Object;
 			}
 		}

@@ -1,30 +1,32 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
+using System.Threading.Tasks;
 using SimpleBrowser;
-using SimpleBrowser.Parser;
 
 namespace Sample
 {
 	class Program
 	{
-		static void Main(string[] args)
+		private static void Main()
+		{
+			MainAsync().Wait();
+		}
+
+		static async Task MainAsync()
 		{
 			var browser = new Browser();
 			try
 			{
 				// log the browser request/response data to files so we can interrogate them in case of an issue with our scraping
 				browser.RequestLogged += OnBrowserRequestLogged;
-				browser.MessageLogged += new Action<Browser, string>(OnBrowserMessageLogged);
+				browser.MessageLogged += OnBrowserMessageLogged;
 
 				// we'll fake the user agent for websites that alter their content for unrecognised browsers
 				browser.UserAgent = "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/534.10 (KHTML, like Gecko) Chrome/8.0.552.224 Safari/534.10";
 
 				// browse to GitHub
-				browser.Navigate("http://github.com/");
+				await browser.Navigate("http://github.com/");
 				if(LastRequestFailed(browser)) return; // always check the last request in case the page failed to load
 
 				// click the login link and click it
@@ -34,13 +36,13 @@ namespace Sample
 					browser.Log("Can't find the login link! Perhaps the site is down for maintenance?");
 				else
 				{
-					loginLink.Click();
+					await loginLink.Click();
 					if(LastRequestFailed(browser)) return;
 
 					// fill in the form and click the login button - the fields are easy to locate because they have ID attributes
 					browser.Find("login_field").Value = "youremail@domain.com";
 					browser.Find("password").Value = "yourpassword";
-					browser.Find(ElementType.Button, "name", "commit").Click();
+					await browser.Find(ElementType.Button, "name", "commit").Click();
 					if(LastRequestFailed(browser)) return;
 
 					// see if the login succeeded - ContainsText() is very forgiving, so don't worry about whitespace, casing, html tags separating the text, etc.
@@ -77,9 +79,9 @@ namespace Sample
 
 		static bool LastRequestFailed(Browser browser)
 		{
-			if(browser.LastWebException != null)
+			if(browser.LastError != null)
 			{
-				browser.Log("There was an error loading the page: " + browser.LastWebException.Message);
+				browser.Log("There was an error loading the page: " + browser.LastError.Message);
 				return true;
 			}
 			return false;
